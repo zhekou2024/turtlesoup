@@ -103,9 +103,12 @@ export function useGameMachine() {
 
         if (!res.ok) {
           const body = await res.json().catch(() => ({}));
-          throw new Error(
-            (body as { error?: string }).error ?? `HTTP ${res.status}`
-          );
+          const serverMsg = (body as { error?: string }).error;
+          const fallback: Record<number, string> = {
+            400: "问题格式有误，请检查后重试",
+            429: "发送太频繁，请稍后再试",
+          };
+          throw new Error(serverMsg ?? fallback[res.status] ?? `服务异常 (${res.status})`);
         }
 
         const answer = (await res.json()) as Pick<AIResponse, "status" | "message">;

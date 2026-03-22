@@ -27,17 +27,19 @@ export type AIResponse = z.infer<typeof AIResponseSchema>;
 
 // ─── API Request / Response Contracts ──────────────────────
 export const JudgeRequestSchema = z.object({
-  puzzleId: z.string(),
-  question: z.string().min(1, "问题不能为空"),
-  history: z.array(
-    z.object({
-      question: z.string(),
-      answer: z.object({
-        status: z.enum(["YES", "NO", "IRRELEVANT", "SOLVED"]),
-        message: z.string(),
-      }),
-    })
-  ),
+  puzzleId: z.string().min(1).max(64),
+  question: z.string().min(1, "问题不能为空").max(50, "问题不能超过50个字符"),
+  history: z
+    .array(
+      z.object({
+        question: z.string().max(50),
+        answer: z.object({
+          status: z.enum(["YES", "NO", "IRRELEVANT", "SOLVED"]),
+          message: z.string().max(200),
+        }),
+      })
+    )
+    .max(20, "历史记录过长"),
 });
 
 export type JudgeRequest = z.infer<typeof JudgeRequestSchema>;
