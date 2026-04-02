@@ -1,78 +1,74 @@
 "use client";
 
-import { GameState, type Puzzle } from "@/types/game";
+import { useState } from "react";
+import { GameState } from "@/types/game";
 import { QuestionInput } from "./question-input";
 import { AnswerHistory } from "./answer-history";
-import type { useGameMachine } from "@/lib/use-game-machine";
+import { RevealBottom } from "./reveal-bottom";
+import { useGameMachine } from "@/lib/use-game-machine";
 
-type GameReturn = ReturnType<typeof useGameMachine>;
+export interface GameBoardProps {
+  puzzleId: string;
+  bottomText: string;
+}
 
-type Props = {
-  state: GameReturn["state"];
-  onAsk: (question: string) => void;
-  onReset: () => void;
-  puzzle: Puzzle;
-};
+export function GameBoard({ puzzleId, bottomText }: GameBoardProps) {
+  const { state, ask } = useGameMachine(puzzleId);
+  const [isDecrypted, setIsDecrypted] = useState(false);
 
-export function GameBoard({ state, onAsk, onReset, puzzle }: Props) {
   const isSolved = state.phase === GameState.SOLVED;
   const isThinking = state.phase === GameState.THINKING;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <span className="text-xs font-medium uppercase tracking-wider text-amber-500/70">
-            汤面
-          </span>
-          <p className="mt-1 text-sm leading-relaxed text-zinc-200">
-            {puzzle.surfaceStory}
-          </p>
-        </div>
-        <button
-          onClick={onReset}
-          className="shrink-0 rounded-lg border border-zinc-700 px-3 py-1.5 text-xs
-                     text-zinc-400 transition-colors hover:border-zinc-500 hover:text-zinc-200"
-        >
-          换题
-        </button>
-      </div>
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
+      {/* Boot line */}
+      <p className="shrink-0 text-xs text-zinc-600">
+        --- SESSION STARTED | PUZZLE_ID: {puzzleId} ---
+      </p>
 
-      {/* Solved Banner */}
+      {/* Solved */}
       {isSolved && (
-        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
-          <p className="text-sm font-medium text-amber-400">
-            恭喜破案！真相已揭晓 🎉
-          </p>
-          <p className="mt-2 text-sm leading-relaxed text-zinc-300">
-            {puzzle.truthBase}
-          </p>
+        <div className="shrink-0 border border-amber-800 p-3 text-xs">
+          <p className="text-amber-500">{">"} STATUS: CASE_SOLVED</p>
+          <p className="text-amber-400">{">"} 恭喜破案。真相已解锁。</p>
         </div>
       )}
 
       {/* Error */}
       {state.error && (
-        <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2.5">
-          <p className="text-sm text-red-400">{state.error}</p>
-        </div>
+        <p className="shrink-0 text-xs text-red-500">
+          [ERROR] {state.error}
+        </p>
       )}
 
-      {/* Thinking Indicator */}
+      {/* Thinking */}
       {isThinking && (
-        <div className="flex items-center gap-2 text-sm text-zinc-400">
-          <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
-          裁判思考中…
-        </div>
+        <p className="shrink-0 animate-pulse text-xs text-zinc-500">
+          [SYS] JUDGE_ENGINE processing...
+        </p>
       )}
 
-      {/* History */}
+      {/* Log stream — flex-1 scrollable zone */}
       <AnswerHistory history={state.history} />
 
-      {/* Input */}
+      {/* CLI input */}
       {!isSolved && (
-        <QuestionInput onSubmit={onAsk} disabled={isThinking} />
+        <QuestionInput
+          onSubmit={ask}
+          disabled={isThinking}
+          isDecrypted={isDecrypted}
+          error={state.error}
+        />
       )}
+
+      {/* Decrypt zone */}
+      <div className="shrink-0 border-t border-zinc-800 pt-3">
+        <RevealBottom
+          bottomText={bottomText}
+          isDecrypted={isDecrypted}
+          setIsDecrypted={setIsDecrypted}
+        />
+      </div>
     </div>
   );
 }

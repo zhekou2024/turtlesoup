@@ -5,35 +5,23 @@ import {
   GameState,
   type AIResponse,
   type HistoryEntry,
-  type Puzzle,
 } from "@/types/game";
 
 // ─── State Shape ────────────────────────────────────────────
 type MachineState = {
   phase: GameState;
-  puzzle: Puzzle | null;
   history: HistoryEntry[];
   error: string | null;
 };
 
 // ─── Actions ────────────────────────────────────────────────
 type Action =
-  | { type: "SELECT_PUZZLE"; puzzle: Puzzle }
   | { type: "ASK" }
   | { type: "RECEIVE"; answer: Pick<AIResponse, "status" | "message">; question: string }
-  | { type: "ERROR"; message: string }
-  | { type: "RESET" };
+  | { type: "ERROR"; message: string };
 
 function reducer(state: MachineState, action: Action): MachineState {
   switch (action.type) {
-    case "SELECT_PUZZLE":
-      return {
-        phase: GameState.IDLE,
-        puzzle: action.puzzle,
-        history: [],
-        error: null,
-      };
-
     case "ASK":
       if (state.phase === GameState.SOLVED) return state;
       return { ...state, phase: GameState.THINKING, error: null };
@@ -61,9 +49,6 @@ function reducer(state: MachineState, action: Action): MachineState {
         error: action.message,
       };
 
-    case "RESET":
-      return INITIAL_STATE;
-
     default:
       return state;
   }
@@ -71,23 +56,16 @@ function reducer(state: MachineState, action: Action): MachineState {
 
 const INITIAL_STATE: MachineState = {
   phase: GameState.IDLE,
-  puzzle: null,
   history: [],
   error: null,
 };
 
 // ─── Hook ───────────────────────────────────────────────────
-export function useGameMachine() {
+export function useGameMachine(puzzleId: string) {
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
-
-  const selectPuzzle = useCallback(
-    (puzzle: Puzzle) => dispatch({ type: "SELECT_PUZZLE", puzzle }),
-    []
-  );
 
   const ask = useCallback(
     async (question: string) => {
-      if (!state.puzzle) return;
       dispatch({ type: "ASK" });
 
       try {
@@ -95,7 +73,7 @@ export function useGameMachine() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            puzzleId: state.puzzle.id,
+            puzzleId,
             question,
             history: state.history,
           }),
@@ -120,10 +98,8 @@ export function useGameMachine() {
         });
       }
     },
-    [state.puzzle, state.history]
+    [puzzleId, state.history]
   );
 
-  const reset = useCallback(() => dispatch({ type: "RESET" }), []);
-
-  return { state, selectPuzzle, ask, reset } as const;
+  return { state, ask } as const;
 }

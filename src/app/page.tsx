@@ -1,41 +1,31 @@
-"use client";
-
-import { useGameMachine } from "@/lib/use-game-machine";
-import { PuzzleSelector } from "@/components/puzzle-selector";
-import { GameBoard } from "@/components/game-board";
+import { stories } from "@/lib/stories";
+import { GameCard } from "@/components/GameCard";
 
 export default function Home() {
-  const { state, selectPuzzle, ask, reset } = useGameMachine();
-
   return (
-    <main className="mx-auto flex min-h-screen max-w-xl flex-col px-4 py-12">
-      {/* Title */}
-      <header className="mb-10 text-center">
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-100">
-          🐢 海龟汤
+    <main className="mx-auto min-h-screen max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
+      {/* Hero */}
+      <header className="mb-12 text-center">
+        <h1 className="text-4xl font-extrabold tracking-tight text-zinc-100 sm:text-5xl">
+          AI 海龟汤
         </h1>
-        <p className="mt-1 text-sm text-zinc-500">
-          情境猜谜 · 用是非题探索真相
+        <p className="mx-auto mt-4 max-w-md text-base leading-relaxed text-zinc-500">
+          每个故事背后都藏着一个不为人知的真相。
+          <br />
+          向 AI 裁判提问，用「是」或「否」拼凑出完整的答案。
         </p>
       </header>
 
-      {/* Main Area */}
-      <div className="flex-1">
-        {!state.puzzle ? (
-          <PuzzleSelector onSelect={selectPuzzle} />
-        ) : (
-          <GameBoard
-            state={state}
-            onAsk={ask}
-            onReset={reset}
-            puzzle={state.puzzle}
-          />
-        )}
-      </div>
+      {/* Card Grid */}
+      <section className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {stories.map((story) => (
+          <GameCard key={story.id} story={story} />
+        ))}
+      </section>
 
       {/* Footer */}
-      <footer className="mt-12 text-center text-xs text-zinc-600">
-        AI 裁判由 GPT-4o-mini + Structured Outputs 驱动
+      <footer className="mt-16 text-center text-xs text-zinc-600">
+        AI 裁判由 DeepSeek 驱动
       </footer>
     </main>
   );
