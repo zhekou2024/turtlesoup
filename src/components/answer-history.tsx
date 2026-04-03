@@ -8,9 +8,7 @@ type Props = {
 };
 
 const STATUS_COLOR: Record<string, string> = {
-  YES: "text-green-500",
-  NO: "text-red-500",
-  IRRELEVANT: "text-zinc-500",
+  IN_PROGRESS: "text-green-500",
   SOLVED: "text-amber-400",
 };
 

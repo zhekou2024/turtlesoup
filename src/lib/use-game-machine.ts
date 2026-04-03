@@ -89,7 +89,11 @@ export function useGameMachine(puzzleId: string) {
           throw new Error(serverMsg ?? fallback[res.status] ?? `服务异常 (${res.status})`);
         }
 
-        const answer = (await res.json()) as Pick<AIResponse, "status" | "message">;
+        const raw = (await res.json()) as Pick<AIResponse, "status" | "message">;
+        const answer: Pick<AIResponse, "status" | "message"> = {
+          status: raw.status === "SOLVED" ? "SOLVED" : "IN_PROGRESS",
+          message: raw.message,
+        };
         dispatch({ type: "RECEIVE", answer, question });
       } catch (err) {
         dispatch({
